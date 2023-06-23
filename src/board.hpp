@@ -114,7 +114,7 @@ public:
     int flood(char flood_c) {
         if (colors_.find(flood_c) != std::string::npos) {
             clearExplored();
-            flood_total_ = floodInternal(0, 0, flood_c);
+            flood_total_ = floodInternal(0, 0, 0, 0, flood_c);
             return flood_total_;
         } else {
             printf("must use one of these colors: \"%s\"\n", colors_.c_str());
@@ -133,7 +133,7 @@ private:
         }
     }
 
-    int floodInternal(size_t x, size_t y, char flood_c) {
+    int floodInternal(size_t prevX, size_t prevY, size_t x, size_t y, char flood_c) {
         int flood_total = 0;
         CellState &this_cell = _getCell(x,y);
         if (this_cell.explored) {
@@ -154,17 +154,17 @@ private:
         }
 
         if (explore) {
-            if (x > 0) {
-                flood_total += floodInternal(x-1, y, flood_c);// explore left
+            if (x > 0 && (x-1) != prevX) {
+                flood_total += floodInternal(x, y, x-1, y, flood_c);// explore left
             }
-            if (y > 0) {
-                flood_total += floodInternal(x, y-1, flood_c);// explore up
+            if (y > 0 && (y-1) != prevY) {
+                flood_total += floodInternal(x, y, x, y-1, flood_c);// explore up
             }
-            if ((x+1) < width_) {
-                flood_total += floodInternal(x+1, y, flood_c);// explore right
+            if ((x+1) < width_ && (x+1) != prevX) {
+                flood_total += floodInternal(x, y, x+1, y, flood_c);// explore right
             }
-            if ((y+1) < height_) {
-                flood_total += floodInternal(x, y+1, flood_c);// explore down
+            if ((y+1) < height_ && (y+1) != prevY) {
+                flood_total += floodInternal(x, y, x, y+1, flood_c);// explore down
             }
         }
 
