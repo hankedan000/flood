@@ -1,5 +1,6 @@
 #pragma once
 
+#include <list>
 #include <stdexcept>
 #include <stdio.h>
 #include <string>
@@ -16,6 +17,7 @@ public:
     Board(size_t width, size_t height, const std::string &colors)
      : origCells_()
      , currCells_()
+     , stateStack_()
      , colors_(colors)
      , width_(width)
      , height_(height)
@@ -23,6 +25,7 @@ public:
         generate();
     }
 
+    // generates a new board with current dimensions
     void generate() {
         if (width_ < 2 || height_ < 2) {
             throw std::runtime_error("board must be at at least 2x2");
@@ -38,10 +41,32 @@ public:
         reset();
     }
 
+    // resets board back to its original unsolved state
     void reset() {
         currCells_ = origCells_;
         // init board by flooding upper left cell with current color
         flood_total_ = flood(getCell(0,0).color);
+        stateStack_.clear();
+    }
+
+    // push board state onto stack. can be restored with restoreState()
+    void pushState() {
+        stateStack_.push_back(currCells_);
+    }
+
+    // restore board state from top of stack (doesn't remove it)
+    void restoreState() {
+        currCells_ = stateStack_.back();
+    }
+
+    // removes the top stack entry
+    void popState() {
+        stateStack_.pop_back();
+    }
+
+    // the number of states in the stack
+    size_t getNumStates() const {
+        return stateStack_.size();
     }
 
     const size_t getWidth() const {
@@ -151,8 +176,10 @@ private:
     }
 
 private:
-    std::vector<CellState> origCells_;
-    std::vector<CellState> currCells_;
+    using CellStates = std::vector<CellState>;
+    CellStates origCells_;
+    CellStates currCells_;
+    std::list<CellStates> stateStack_;
     std::string colors_;
     size_t width_;
     size_t height_;
