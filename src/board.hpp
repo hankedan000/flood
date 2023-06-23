@@ -15,13 +15,12 @@ struct CellState {
 class Board {
 public:
     Board(size_t width, size_t height, const std::string &colors)
-     : origCells_()
-     , currCells_()
+     : origState_()
+     , currState_()
      , stateStack_()
      , colors_(colors)
      , width_(width)
-     , height_(height)
-     , flood_total_(0) {
+     , height_(height) {
         generate();
     }
 
@@ -32,31 +31,31 @@ public:
         }
 
         // randomly generate a board
-        origCells_.resize(width_ * height_);
-        for (auto &cell : origCells_) {
+        currState_.cells.resize(width_ * height_);
+        for (auto &cell : currState_.cells) {
             cell.color = colors_[rand() % colors_.length()];
             cell.flooded = false;
             cell.explored = false;
         }
-        reset();
+        // init board by flooding upper left cell with current color
+        currState_.flood_total = flood(getCell(0,0).color);
+        origState_ = currState_;
     }
 
     // resets board back to its original unsolved state
     void reset() {
-        currCells_ = origCells_;
-        // init board by flooding upper left cell with current color
-        flood_total_ = flood(getCell(0,0).color);
+        currState_ = origState_;
         stateStack_.clear();
     }
 
     // push board state onto stack. can be restored with restoreState()
     void pushState() {
-        stateStack_.push_back(currCells_);
+        stateStack_.push_back(currState_);
     }
 
     // restore board state from top of stack (doesn't remove it)
     void restoreState() {
-        currCells_ = stateStack_.back();
+        currState_ = stateStack_.back();
     }
 
     // removes the top stack entry
@@ -78,7 +77,7 @@ public:
     }
 
     const CellState & getCell(size_t x, size_t y) const {
-        return currCells_.at(x + width_ * y);
+        return currState_.cells.at(x + width_ * y);
     }
 
     const std::string & getColors() const {
@@ -114,8 +113,8 @@ public:
     int flood(char flood_c) {
         if (colors_.find(flood_c) != std::string::npos) {
             clearExplored();
-            flood_total_ = floodInternal(0, 0, 0, 0, flood_c);
-            return flood_total_;
+            currState_.flood_total = floodInternal(0, 0, 0, 0, flood_c);
+            return currState_.flood_total;
         } else {
             printf("must use one of these colors: \"%s\"\n", colors_.c_str());
             return 0;
@@ -123,12 +122,12 @@ public:
     }
 
     bool complete() const {
-        return flood_total_ >= (width_ * height_);
+        return currState_.flood_total >= (width_ * height_);
     }
 
 private:
     void clearExplored() {
-        for (auto &cell : currCells_) {
+        for (auto &cell : currState_.cells) {
             cell.explored = false;
         }
     }
@@ -172,17 +171,20 @@ private:
     }
 
     CellState & _getCell(size_t x, size_t y) {
-        return currCells_.at(x + width_ * y);
+        return currState_.cells.at(x + width_ * y);
     }
 
 private:
     using CellStates = std::vector<CellState>;
-    CellStates origCells_;
-    CellStates currCells_;
-    std::list<CellStates> stateStack_;
+    struct BoardState {
+        CellStates cells;
+        size_t flood_total;
+    };
+    BoardState origState_;
+    BoardState currState_;
+    std::list<BoardState> stateStack_;
     std::string colors_;
     size_t width_;
     size_t height_;
-    size_t flood_total_;
 
 };

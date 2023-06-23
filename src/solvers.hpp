@@ -84,3 +84,40 @@ std::string solveRandBestN(Board &board, size_t maxSolves) {
     }
     return bestMoves;
 }
+
+std::string solveMostCaptures(Board &board) {
+    const std::string colors = board.getColors();
+    const size_t nColors = colors.length();
+    if (nColors == 0) {
+        throw std::runtime_error("there are not colors. can't solve");
+    }
+
+    board.reset();
+
+    std::string moves = "";
+    while ( ! board.complete()) {
+        const auto &rootCell = board.getCell(0,0);
+
+        // determine next color by picking the one that results in most floods
+        unsigned long bestNumFloods = 0;
+        char nextColor = rootCell.color;
+        board.pushState();
+        for (size_t i=0; i<colors.length(); i++) {
+            if (colors[i] == rootCell.color) {
+                continue;// skip current color
+            }
+
+            unsigned long thisNumFloods = board.flood(colors[i]);
+            if (thisNumFloods > bestNumFloods) {
+                bestNumFloods = thisNumFloods;
+                nextColor = colors[i];
+            }
+            board.restoreState();
+        }
+        board.popState();
+
+        moves.push_back(nextColor);
+        board.flood(nextColor);
+    }
+    return moves;
+}

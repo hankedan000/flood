@@ -37,14 +37,33 @@ int main() {
     Board board(100,100,"rgby");
     printf("width: %ld, height: %ld\n", board.getWidth(), board.getHeight());
 
-    printf("solving board sequentially...\n");
-    const std::string movesSeq = solveSeq(board);
-    printf("moves: %ld '%s'\n", movesSeq.length(), movesSeq.c_str());
-    printf("solving board randomly...\n");
-    const std::string movesRand = solveRandBestN(board, 10);
-    printf("moves: %ld '%s'\n", movesRand.length(), movesRand.c_str());
+    {
+        printf("======== solveSeq() ========\n");
+        const unsigned long long startTime_us = get_time_us();
+        const std::string moves = solveSeq(board);
+        const float solveTime_ms = (get_time_us() - startTime_us) / 1000.0;
+        printf("solve time: %.3fms\n", solveTime_ms);
+        printf("moves: %ld '%s'\n", moves.length(), moves.c_str());
+    }
+    {
+        const int N_SOLVES = 100;
+        printf("======== solveRandBestN(%d) ========\n", N_SOLVES);
+        const unsigned long long startTime_us = get_time_us();
+        const std::string moves = solveRandBestN(board, N_SOLVES);
+        const float solveTime_ms = (get_time_us() - startTime_us) / 1000.0;
+        printf("solve time: %.3fms\n", solveTime_ms);
+        printf("moves: %ld '%s'\n", moves.length(), moves.c_str());
+    }
+    {
+        printf("======== solveMostCaptures() ========\n");
+        const unsigned long long startTime_us = get_time_us();
+        const std::string moves = solveMostCaptures(board);
+        const float solveTime_ms = (get_time_us() - startTime_us) / 1000.0;
+        printf("solve time: %.3fms\n", solveTime_ms);
+        printf("moves: %ld '%s'\n", moves.length(), moves.c_str());
+    }
 
-    benchmarkFloodPerf();
+    // benchmarkFloodPerf();
 
     return 0;
 }
