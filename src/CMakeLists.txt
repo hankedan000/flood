@@ -1,2 +1,2 @@
-add_executable(application
-	application.cpp)
+add_executable(flood
+	flood.cpp)
