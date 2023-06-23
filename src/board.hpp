@@ -14,30 +14,53 @@ struct CellState {
 class Board {
 public:
     Board(size_t width, size_t height, const std::string &colors)
-     : cells_()
+     : origCells_()
+     , currCells_()
      , colors_(colors)
      , width_(width)
      , height_(height)
      , flood_total_(0) {
-        if (width < 2 || height < 2) {
+        generate();
+    }
+
+    void generate() {
+        if (width_ < 2 || height_ < 2) {
             throw std::runtime_error("board must be at at least 2x2");
         }
-        cells_.resize(width_ * height_);
-        for (auto &cell : cells_) {
-            cell.color = colors[rand() % colors.length()];
+
+        // randomly generate a board
+        origCells_.resize(width_ * height_);
+        for (auto &cell : origCells_) {
+            cell.color = colors_[rand() % colors_.length()];
             cell.flooded = false;
             cell.explored = false;
         }
+        reset();
+    }
 
+    void reset() {
+        currCells_ = origCells_;
         // init board by flooding upper left cell with current color
         flood_total_ = flood(getCell(0,0).color);
     }
 
-    CellState & getCell(size_t x, size_t y) {
-        return cells_.at(x + width_ * y);
+    const size_t getWidth() const {
+        return width_;
     }
 
-    void print() {
+    const size_t getHeight() const {
+        return height_;
+    }
+
+    const CellState & getCell(size_t x, size_t y) const {
+        return currCells_.at(x + width_ * y);
+    }
+
+    const std::string & getColors() const {
+        return colors_;
+    }
+
+    void print() const {
         for (unsigned int y=0; y<height_; y++) {
             for (unsigned int x=0; x<width_; x++) {
                 printf("%c ", getCell(x,y).color);
@@ -46,7 +69,7 @@ public:
         }
     }
 
-    void printState() {
+    void printState() const {
         for (unsigned int y=0; y<height_; y++) {
             for (unsigned int x=0; x<width_; x++) {
                 printf("%c ", getCell(x,y).color);
@@ -66,27 +89,28 @@ public:
     int flood(char flood_c) {
         if (colors_.find(flood_c) != std::string::npos) {
             clearExplored();
-            return floodInternal(0, 0, flood_c);
+            flood_total_ = floodInternal(0, 0, flood_c);
+            return flood_total_;
         } else {
             printf("must use one of these colors: \"%s\"\n", colors_.c_str());
             return 0;
         }
     }
 
-    bool complete() {
+    bool complete() const {
         return flood_total_ >= (width_ * height_);
     }
 
 private:
     void clearExplored() {
-        for (auto &cell : cells_) {
+        for (auto &cell : currCells_) {
             cell.explored = false;
         }
     }
 
     int floodInternal(size_t x, size_t y, char flood_c) {
         int flood_total = 0;
-        CellState &this_cell = getCell(x,y);
+        CellState &this_cell = _getCell(x,y);
         if (this_cell.explored) {
             return flood_total;
         }
@@ -122,8 +146,13 @@ private:
         return flood_total;
     }
 
+    CellState & _getCell(size_t x, size_t y) {
+        return currCells_.at(x + width_ * y);
+    }
+
 private:
-    std::vector<CellState> cells_;
+    std::vector<CellState> origCells_;
+    std::vector<CellState> currCells_;
     std::string colors_;
     size_t width_;
     size_t height_;

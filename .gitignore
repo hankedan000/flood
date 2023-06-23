@@ -10,5 +10,5 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 
-# ignore build directory
 build/
+.vscode/

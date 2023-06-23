@@ -6,7 +6,7 @@
 int main() {
     Board board(8,8,"rgby");
 
-    unsigned int steps = 0;
+    std::string moves = "";
     while ( ! board.complete()) {
         board.print();
         printf("Enter color (q to quit): ");
@@ -17,11 +17,11 @@ int main() {
             exit(0);
         }
         if (board.flood(flood_c) > 0) {
-            steps++;
+            moves.push_back(flood_c);
         }
     }
     board.print();
     printf("You win!\n");
-    printf("It took you %d steps to flood the board.\n", steps);
+    printf("Moves: '%s' (%ld steps)\n", moves.c_str(), moves.length());
     return 0;
 }
