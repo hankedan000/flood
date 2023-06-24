@@ -3,3 +3,6 @@ add_executable(flood
 
 add_executable(flood_perf
 	flood_perf.cpp)
+
+add_executable(board_gen
+	board_gen.cpp)
