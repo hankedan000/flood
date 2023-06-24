@@ -35,7 +35,6 @@ void benchmarkFloodPerf() {
 
 int main() {
     Board board(100,100,"rgby");
-    printf("width: %ld, height: %ld\n", board.getWidth(), board.getHeight());
 
     {
         printf("======== solveSeq() ========\n");

@@ -1,9 +1,10 @@
 #pragma once
 
-#include <unistd.h>
+#include <fstream>
 #include <stdexcept>
 #include <termios.h>
 #include <time.h>
+#include <unistd.h>
 
 char getch() {
     struct termios tty_opts_backup, tty_opts_raw;

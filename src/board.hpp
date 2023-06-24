@@ -1,6 +1,8 @@
 #pragma once
 
 #include <list>
+#include <set>
+#include <sstream>
 #include <stdexcept>
 #include <stdio.h>
 #include <string>
@@ -84,6 +86,67 @@ public:
         return colors_;
     }
 
+    void dump(std::ostream &out) const {
+        out << width_ << " " << height_ << std::endl;
+        for (unsigned int y=0; y<height_; y++) {
+            for (unsigned int x=0; x<width_; x++) {
+                out << getCell(x,y).color;
+            }
+            out << std::endl;
+        }
+    }
+
+    std::string dumps() const {
+        std::stringstream ss;
+        dump(ss);
+        return ss.str();
+    }
+
+    static
+    Board load(std::istream &in) {
+        Board b;
+        in >> b.width_;
+        in >> b.height_;
+
+        // read board in from stream
+        b.currState_.cells.resize(b.width_ * b.height_);
+        size_t cellsRead = 0;
+        std::set<char> uniqueColors;
+        for (size_t rr=0; rr<b.height_; rr++) {
+            for (size_t cc=0; cc<b.width_; cc++) {
+                auto &cell = b.currState_.cells[cellsRead++];
+                in >> cell.color;
+                cell.flooded = false;
+                cell.explored = false;
+                uniqueColors.insert(cell.color);
+            }
+        }
+
+        if (cellsRead != (b.width_ * b.height_)) {
+            throw std::runtime_error(
+                "only read " + std::to_string(cellsRead) + " cells from stream,"
+                " but expected " + std::to_string(b.width_ * b.height_));
+        }
+
+        // build list of colors based on cells we read
+        b.colors_ = "";
+        for (auto c : uniqueColors) {
+            b.colors_ += c;
+        }
+
+        // init board by flooding upper left cell with current color
+        b.currState_.flood_total = b.flood(b.getCell(0,0).color);
+        b.origState_ = b.currState_;
+
+        return b;
+    }
+
+    static
+    Board loads(const std::string &str) {
+        std::stringstream ss(str);
+        return Board::load(ss);
+    }
+
     void print() const {
         for (unsigned int y=0; y<height_; y++) {
             for (unsigned int x=0; x<width_; x++) {
@@ -126,6 +189,15 @@ public:
     }
 
 private:
+    Board()
+     : origState_()
+     , currState_()
+     , stateStack_()
+     , colors_("")
+     , width_(0)
+     , height_(0)
+    {}
+
     void clearExplored() {
         for (auto &cell : currState_.cells) {
             cell.explored = false;
